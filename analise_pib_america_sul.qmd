@@ -1,0 +1,81 @@
+---
+title: "Análise do PIB na América do Sul"
+format: html
+editor: visual
+---
+
+## Carregar bibliotecas necessárias
+
+```{r}
+if (!require(WDI)) install.packages("WDI")
+if (!require(ggplot2)) install.packages("ggplot2")
+if (!require(dplyr)) install.packages("dplyr")
+if (!require(tidyr)) install.packages("tidyr")
+
+library(WDI)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+## Definir países selecionados da América do Sul
+
+```{r}
+paises_sul_america <- c("ARG", "BRA", "CHL", "COL", "PER", "VEN")
+```
+
+## Baixar dados do PIB nominal (2000–2023)
+
+```{r}
+dados_pib <- WDI(
+  country = paises_sul_america,
+  indicator = "NY.GDP.MKTP.CD",
+  start = 2000,
+  end = 2023
+)
+```
+
+## Limpar dados e manter nomes dos países
+
+```{r}
+dados_pib_limpos <- dados_pib %>% 
+  filter(!is.na(NY.GDP.MKTP.CD)) %>% 
+  rename(PIB = NY.GDP.MKTP.CD) %>% 
+  mutate(pais = ifelse(country == "Brazil", "Brasil", country))
+```
+
+## Identificar ponto de referência na Venezuela (2014)
+
+```{r}
+venezuela_queda <- dados_pib_limpos %>% 
+  filter(country == "VEN", year == 2014)
+```
+
+## Gráfico do PIB nominal (2000–2023)
+
+```{r}
+ggplot(dados_pib_limpos, aes(x = year, y = PIB, color = pais)) +
+  geom_line(size = 1) +
+  geom_point(size = 1.5) +
+  labs(
+    title = "PIB Nominal (2000-2023): Tendências Econômicas na América do Sul",
+    x = "Ano",
+    y = "PIB (em US$ correntes)",
+    color = "País"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    axis.text.y = element_text(size = 10),
+    legend.position = "right"
+  ) +
+  scale_y_continuous(labels = scales::label_number(big.mark = ".", decimal.mark = ",")) +
+  annotate("text", x = 2012, y = venezuela_queda$PIB * 2,
+           label = "Início do colapso econômico\nda Venezuela", hjust = 0, size = 3.5) +
+  annotate("segment", 
+           x = 2013, xend = 2014, 
+           y = venezuela_queda$PIB * 1.8, yend = venezuela_queda$PIB, 
+           arrow = arrow(type = "closed", length = unit(0.15, "inches")),
+           color = "red", size = 1)
+```
