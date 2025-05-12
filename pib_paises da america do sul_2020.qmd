@@ -1,0 +1,50 @@
+---
+title: "PIB da América do Sul em 2020"
+format: html
+editor: visual
+---
+
+## Análise do PIB Sul-Americano em 2020
+
+Este documento utiliza dados do Banco Mundial para visualizar o Produto Interno Bruto (PIB) nominal dos países da América do Sul no ano de 2020. Os valores estão expressos em bilhões de dólares americanos.
+
+```{r}
+# Carregar pacotes
+library(WDI)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# Definir países sul-americanos (códigos ISO2)
+paises_sa <- c("ARG", "BOL", "BRA", "CHL", "COL", "ECU", "GUY", "PRY", "PER", "SUR", "URY", "VEN")
+
+# Buscar dados do PIB nominal em US$ atuais para 2020
+pib_2020 <- WDI(
+  country = paises_sa,
+  indicator = "NY.GDP.MKTP.CD",
+  start = 2020,
+  end = 2020
+)
+
+# Limpeza e preparação dos dados
+pib_2020_clean <- pib_2020 %>%
+  rename(pib_usd = NY.GDP.MKTP.CD) %>%
+  filter(!is.na(pib_usd)) %>%
+  mutate(pib_bilhoes = pib_usd / 1e9) %>%
+  mutate(country = factor(country, levels = country[order(pib_bilhoes)]))
+```
+
+## Gráfico: PIB Nominal em 2020
+
+```{r}
+ggplot(pib_2020_clean, aes(x = pib_bilhoes, y = country)) +
+  geom_bar(stat = "identity", fill = "#2c7fb8") +
+  scale_x_continuous(labels = label_number(suffix = " B", scale = 1)) +
+  labs(
+    title = "PIB Nominal em 2020 - Países da América do Sul",
+    x = "PIB (em bilhões de dólares)",
+    y = "País",
+    caption = "Fonte: Banco Mundial (WDI)"
+  ) +
+  theme_minimal()
+```
