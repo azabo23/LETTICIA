@@ -1,0 +1,194 @@
+---
+title: "O PIB na América do Sul"
+format: html
+editor: visual
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+suppressMessages(if (!require(WDI)) install.packages("WDI"))
+library(WDI)
+
+dados <- WDI(
+  country = c("ARG", "BRA", "CHL", "COL", "PER", "VEN"),
+  indicator = "NY.GDP.MKTP.CD",
+  start = 2000,
+  end = 2023
+)
+
+names(dados)[names(dados) == "NY.GDP.MKTP.CD"] <- "PIB"
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+```{r echo=FALSE}
+if (!require(WDI)) install.packages("WDI")
+if (!require(ggplot2)) install.packages("ggplot2")
+if (!require(dplyr)) install.packages("dplyr")
+if (!require(tidyr)) install.packages("tidyr")
+
+library(WDI)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+```{r echo=FALSE}
+paises_sul_america <- c("ARG", "BRA", "CHL", "COL", "PER", "VEN")
+```
+
+```{r echo=FALSE}
+dados_pib <- WDI(
+  country = paises_sul_america,
+  indicator = "NY.GDP.MKTP.CD",
+  start = 2000,
+  end = 2023
+)
+```
+
+```{r echo=FALSE}
+dados_pib_limpos <- dados_pib %>% 
+  filter(!is.na(NY.GDP.MKTP.CD)) %>% 
+  rename(PIB = NY.GDP.MKTP.CD) %>% 
+  mutate(pais = ifelse(country == "Brazil", "Brasil", country))
+```
+
+```{r echo=FALSE}
+# Identifica os dados da Venezuela no ano de 2014
+venezuela_queda <- dados_pib_limpos %>%
+  filter(country == "VEN", year == 2014)
+```
+
+```{r echo=FALSE}
+ggplot(dados, aes(x = year, y = PIB, color = country)) +
+  geom_line(linewidth = 1) +  # substitui 'size' se necessário
+  labs(
+    title = "Análise do PIB América do Sul",
+    subtitle = "Apresentado por Lettícia Azabô",
+    x = "Ano",
+    y = "PIB (em US$ correntes)",
+    caption = "Fonte: Banco Mundial (WDI), variável NY.GDP.MKTP.CD"
+  )+
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    axis.text.y = element_text(size = 10),
+    legend.position = "right"
+  ) +
+  scale_y_continuous(labels = scales::label_number(big.mark = ".", decimal.mark = ",")) +
+  annotate("text", x = 2012, y = venezuela_queda$PIB * 2,
+           label = "Início do colapso econômico\nda Venezuela", hjust = 0, size = 3.5) +
+  annotate("segment", 
+           x = 2013, xend = 2014, 
+           y = venezuela_queda$PIB * 1.8, yend = venezuela_queda$PIB, 
+           arrow = arrow(type = "closed", length = unit(0.15, "inches")),
+           color = "red", size = 1)
+```
+
+---
+title: "PIB da América do Sul em 2020"
+format: html
+editor: visual
+---
+
+## Análise do PIB Sul-Americano em 2020
+
+Este documento utiliza dados do Banco Mundial para visualizar o Produto Interno Bruto (PIB) nominal dos países da América do Sul no ano de 2020. Os valores estão expressos em bilhões de dólares americanos.
+
+```{r echo=FALSE}
+# Carregar pacotes
+library(WDI)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# Definir países sul-americanos (códigos ISO2)
+paises_sa <- c("ARG", "BOL", "BRA", "CHL", "COL", "ECU", "GUY", "PRY", "PER", "SUR", "URY", "VEN")
+
+# Buscar dados do PIB nominal em US$ atuais para 2020
+pib_2020 <- WDI(
+  country = paises_sa,
+  indicator = "NY.GDP.MKTP.CD",
+  start = 2020,
+  end = 2020
+)
+
+# Limpeza e preparação dos dados
+pib_2020_clean <- pib_2020 %>%
+  rename(pib_usd = NY.GDP.MKTP.CD) %>%
+  filter(!is.na(pib_usd)) %>%
+  mutate(pib_bilhoes = pib_usd / 1e9) %>%
+  mutate(country = factor(country, levels = country[order(pib_bilhoes)]))
+```
+
+## Gráfico: PIB Nominal em 2020
+
+```{r echo=FALSE}
+ggplot(pib_2020_clean, aes(x = pib_bilhoes, y = country)) +
+  geom_bar(stat = "identity", fill = "#2c7fb8") +
+  scale_x_continuous(labels = label_number(suffix = " B", scale = 1)) +
+  labs(
+    title = "PIB Nominal em 2020 - Países da América do Sul",
+    x = "PIB (em bilhões de dólares)",
+    y = "País",
+    caption = "Fonte: Banco Mundial (WDI)"
+  ) +
+  theme_minimal()
+```
+
+---
+title: "Análise do PIB da América do Sul"
+author: "Apresentado por Letícia Azabô"
+format: html
+editor: visual
+---
+
+## Evolução Histórica do PIB Nominal do Brasil
+
+Este gráfico mostra a evolução do Produto Interno Bruto (PIB) nominal do Brasil entre os anos de 1980 e 2023, em trilhões de dólares americanos. Os dados são obtidos diretamente do Banco Mundial através do pacote `WDI`.
+
+```{r echo=FALSE}
+# Carregar pacotes
+library(WDI)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# Definir país Brasil (código ISO2)
+pais_brasil <- "BRA"
+
+# Buscar dados históricos do PIB nominal do Brasil (de 1980 a 2023)
+pib_brasil <- WDI(
+  country = pais_brasil,
+  indicator = "NY.GDP.MKTP.CD",
+  start = 1980,
+  end = 2023
+)
+
+# Limpeza e preparação dos dados
+pib_brasil_clean <- pib_brasil %>%
+  rename(pib_usd = NY.GDP.MKTP.CD) %>%
+  filter(!is.na(pib_usd)) %>%
+  mutate(pib_trilhoes = pib_usd / 1e12) # Convertendo PIB para trilhões de dólares
+```
+
+## Gráfico do PIB Nominal do Brasil
+
+```{r echo=FALSE}
+ggplot(pib_brasil_clean, aes(x = year, y = pib_trilhoes)) +
+  geom_line(color = "#2c7fb8", size = 1) +
+  geom_point(color = "#2c7fb8", size = 2) +
+  scale_y_continuous(labels = label_number(suffix = " T", scale = 1)) +
+  labs(
+    title = "Evolução do PIB Nominal do Brasil (1980 - 2023)",
+    x = "Ano",
+    y = "PIB (em trilhões de dólares)",
+    caption = "Fonte: Banco Mundial (WDI)"
+  ) +
+  theme_minimal()
+```
+
+**Fonte dos dados**: Banco Mundial (WDI) - Variável: `NY.GDP.MKTP.CD` (PIB nominal, US\$ correntes)
