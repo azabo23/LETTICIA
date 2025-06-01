@@ -1,0 +1,132 @@
+---
+title: "Produção de Café no Brasil (1981–2015)"
+format: html
+editor: visual
+execute:
+  freeze: auto
+---
+
+## ☕ Produção de Café no Brasil
+
+Esta animação mostra a evolução da produção brasileira de café entre os anos de 1981 e 2015. Os dados são da série 1262 do IBGE, disponibilizada via Banco Central do Brasil (SGS).
+
+Apresentado por Lettícia Azabô
+
+## 🧭 Eventos Históricos Destacados
+
++------+-------------------------------------------+
+| Ano  | Evento Importante                         |
++======+===========================================+
+| 1986 | Congelamento de preços do Plano Cruzado   |
++------+-------------------------------------------+
+| 1994 | Lançamento do Plano Real                  |
++------+-------------------------------------------+
+| 2001 | Crise energética e mudança de metodologia |
++------+-------------------------------------------+
+| 2008 | Crise financeira global                   |
++------+-------------------------------------------+
+| 2014 | Seca intensa no Sudeste                   |
++------+-------------------------------------------+
+
+```{r}
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+
+library(ggplot2)
+library(gganimate)
+library(dplyr)
+library(gifski)
+library(transformr)
+
+# Dados da produção de café
+dados_cafe <- data.frame(
+  Ano = as.numeric(1981:2015),
+  Producao = c(
+    1813862, 2339606, 2511561, 2701620, 2356176, 2242731, 2308989, 1889543, 1910937, 1546204,
+    2082478, 2476397, 2397216, 3067574, 2730781, 2215865, 2855790, 2766720, 2596557, 3010142,
+    2303043, 2905364, 2934122, 2284863, 2891047, 2932187, 2367764, 2572255, 3014981, 2750891,
+    2900355, 2872646, 2611825, 2691591, 2756984
+  )
+)
+
+# Eventos importantes
+eventos <- data.frame(
+  Ano = c(1986, 1994, 2001, 2008, 2014),
+  Evento = c("Plano Cruzado", "Plano Real", "Mudança de metodologia", "Crise financeira", "Seca no Sudeste")
+)
+
+# Gráfico animado
+grafico <- ggplot() +
+  # Linha da produção
+  geom_line(
+    data = dados_cafe, 
+    aes(x = Ano, y = Producao), 
+    color = "#4C4637", linewidth = 2
+  ) +
+  # Pontos
+  geom_point(
+    data = dados_cafe, 
+    aes(x = Ano, y = Producao), 
+    color = "#B86B25", size = 3
+  ) +
+  # Linhas verticais dos eventos
+  geom_vline(
+    data = eventos, 
+    aes(xintercept = Ano), 
+    linetype = "dashed", color = "gray50"
+  ) +
+  # Labels dos eventos
+  geom_text(
+    data = eventos,
+    aes(x = Ano, y = max(dados_cafe$Producao) * 1.02, label = Evento),
+    angle = 90, vjust = -0.5, hjust = 0, size = 3.5,
+    color = "gray30", fontface = "italic"
+  ) +
+  # Escalas
+  scale_y_continuous(
+    labels = scales::comma_format(scale = 1e-6, suffix = " mi")
+  ) +
+  scale_x_continuous(breaks = seq(1980, 2015, by = 5)) +
+  # Títulos
+  labs(
+    title = "☕ Produção de Café no Brasil (1981–2015)",
+    subtitle = "Ano: {frame_time}",
+    x = "Ano", 
+    y = "Produção (milhões de toneladas)",
+    caption = "Fonte: IBGE - Série 1262 via Banco Central do Brasil (SGS)"
+  ) +
+  # Tema mais bonito
+  theme_minimal(base_size = 14, base_family = "sans") +
+  theme(
+    plot.background = element_rect(fill = "#fdfaf6", color = NA),
+    panel.grid.major = element_line(color = "gray90"),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(size = 18, face = "bold", color = "#4C4637"),
+    plot.subtitle = element_text(size = 15, face = "bold", color = "#B86B25"),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    plot.caption = element_text(size = 10, color = "gray40", hjust = 1),
+    legend.position = "none"
+  ) +
+  transition_reveal(Ano)
+
+
+```
+
+### 🌎 **Importância da variável:**
+
+O café é um dos principais produtos agrícolas do Brasil, tanto do ponto de vista **econômico**, quanto **social e histórico**. Acompanhar a evolução da produção ao longo do tempo permite:
+
+-   📈 **Analisar tendências de crescimento ou queda na produção**, influenciadas por fatores econômicos, tecnológicos e climáticos.
+
+-    🔍 **Avaliar impactos de políticas econômicas** (como o Plano Cruzado e o Plano Real) e eventos externos (como crises econômicas e secas).
+
+-    ☁️ **Estudar os efeitos de fenômenos climáticos**, como secas e variações sazonais, que afetam diretamente a produção agrícola.
+
+-    💰 **Compreender a dinâmica do mercado agrícola e seus efeitos nas exportações brasileiras**, já que o Brasil é historicamente o maior produtor e exportador de café do mundo.
+
+-    🏛️ **Auxiliar na formulação de políticas públicas e estratégias do setor agrícola**, para garantir sustentabilidade, produtividade e segurança econômica.
+
+![](producao_cafe.gif)
